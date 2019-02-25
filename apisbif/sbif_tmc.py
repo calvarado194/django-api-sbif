@@ -1,96 +1,59 @@
 import logging
 
+from django.conf import settings
+
 from munch import munchify
 
 import requests
 
 
-logging.basicConfig()
+logger = logging.getLogger(__name__)
 
-config = None
-url = None
-
-
-class Dictionaries():
-    @staticmethod
-    def dictionary_config():
-
-        config = dict()
-
-        base = 'https://api.sbif.cl/api-sbifv3/recursos_api/tmc/'
-
-        config['ENDPOINTTMC'] = base + '{}/{}'
-
-        config['ENDPOINTTMCANTERIORES'] = base + 'anteriores/{}/{}'
-
-        config['ENDPOINTTMCPOSTERIORES'] = base + 'posteriores/{}/{}'
-
-        config['ENDPOINTTMCPERIODO'] = base + 'periodo/{}/{}/{}/{}'
-
-        config['APIKEY'] = ''
-
-        return config
+if not hasattr(settings, 'APISBIF_APIKEY'):
+    raise ValueError('Debe agregar configuracion APISBIF en settings de django')
+apikey = settings.APISBIF_APIKEY
+endpoint = 'https://api.sbif.cl/api-sbifv3/recursos_api'
 
 
 class TMC():
 
-    def __init__(self):
-        self.__config = Dictionaries.dictionary_config()
+    def __request_apisbif(self, url_endpoint):
 
-    def get_tmc(self, year, month, tipo=None):
-
-        url_endpoint = self.__config['ENDPOINTTMC'].format(year, month)
-
-        url_query_strings = {'apikey': self.__config['APIKEY'],
+        url_query_strings = {'apikey': apikey,
                              'formato': 'json'}
 
-        response = munchify(requests.get(url_endpoint,
-                                         params=url_query_strings).json())
+        response = requests.get(url_endpoint, params=url_query_strings)
 
-        if tipo:
-            for operacion in response.TMCs:
-                if operacion.Tipo == tipo:
-                    return operacion
+        if not response.ok:
+            logger.error('ERROR APISBIF Response: {}'.format(response.text))
+            return None
+        response = munchify(response.json())
 
         return response
+
+    def get_tmc(self, year, month):
+
+        url_endpoint = endpoint + '/tmc/{}/{}'.format(year, month)
+
+        return self.__request_apisbif(url_endpoint)
 
     def get_tmc_anteriores(self, year, month):
 
-        url_endpoint = self.__config['ENDPOINTTMCANTERIORES'].format(year,
-                                                                     month)
+        url_endpoint = endpoint + '/tmc/anteriores/{}/{}'.format(year, month)
 
-        url_query_strings = {'apikey': self.__config['APIKEY'],
-                             'formato': 'json'}
-
-        response = munchify(requests.get(url_endpoint,
-                                         params=url_query_strings).json())
-
-        return response
+        return self.__request_apisbif(url_endpoint)
 
     def get_tmc_posteriores(self, year, month):
 
-        url_endpoint = self.__config['ENDPOINTTMCPOSTERIORES'].format(year,
-                                                                      month)
+        url_endpoint = endpoint + '/tmc/posteriores/{}/{}'.format(year, month)
 
-        url_query_strings = {'apikey': self.__config['APIKEY'],
-                             'formato': 'json'}
-
-        response = munchify(requests.get(url_endpoint,
-                                         params=url_query_strings).json())
-
-        return response
+        return self.__request_apisbif(url_endpoint)
 
     def get_tmc_periodo(self, from_year, from_month, to_year, to_month):
 
-        url_endpoint = self.__config['ENDPOINTTMCPERIODO'].format(from_year,
-                                                                  from_month,
-                                                                  to_year,
-                                                                  to_month)
+        url_endpoint = endpoint + '/tmc/periodo/{}/{}/{}/{}'.format(from_year,
+                                                                    from_month,
+                                                                    to_year,
+                                                                    to_month)
 
-        url_query_strings = {'apikey': self.__config['APIKEY'],
-                             'formato': 'json'}
-
-        response = munchify(requests.get(url_endpoint,
-                                         params=url_query_strings).json())
-
-        return response
+        return self.__request_apisbif(url_endpoint)

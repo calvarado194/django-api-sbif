@@ -1,6 +1,4 @@
-
 from setuptools import setup
-# To use a consistent encoding
 from codecs import open
 from os import path
 
@@ -14,7 +12,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.1',
+    version='0.0.2',
 
     description='API de la Superintendencia de Bancos e Instituciones Financieras de Chile',
     long_description=long_description,
@@ -31,7 +29,7 @@ setup(
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Framework :: Django :: 1.11',
         'Intended Audience :: Developers',
@@ -57,6 +55,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
+        'django',
         'requests',
         'munch'
     ],
